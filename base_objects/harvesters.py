@@ -10,6 +10,10 @@ class HarvesterPack:
     def count_area_cov(self):
         pass
 
+    @abstractmethod
+    def set_workhours(self, workhours: int):
+        pass
+
 
 class SimpleHarvPack(HarvesterPack):
     def __init__(self, num: int, harv_width: float, bunker_volume: float, speed: int, workhours: int = 12):
@@ -30,9 +34,12 @@ class SimpleHarvPack(HarvesterPack):
 
         return area_cov
 
+    def set_workhours(self, workhours: int):
+        self.workhours = workhours
+
 
 class GigaHarvPack(HarvesterPack):
-    def __init__(self, *subpacks: list[HarvesterPack]):
+    def __init__(self, *subpacks: HarvesterPack):
         self.subpacks = subpacks
 
         self.area_cov = None
@@ -44,3 +51,7 @@ class GigaHarvPack(HarvesterPack):
             self.area_cov = area_cov
 
         return area_cov
+
+    def set_workhours(self, workhours: int):
+        for subpack in self.subpacks:
+            subpack.set_workhours(workhours)
