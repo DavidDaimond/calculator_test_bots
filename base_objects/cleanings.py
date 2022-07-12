@@ -1,7 +1,9 @@
 from base_objects.harvesters import *
 from base_objects.fields import *
 
+from abc import abstractmethod
 from typing import Union
+
 from numpy import argmin
 
 
@@ -10,7 +12,7 @@ class BaseCleaning:
     DRY_RATE = ((.14, .02), (.11, .009), (.09, .005),
                 (.07, .003), (.06, .002), (.0, .001))
 
-    WEATHER_COEFS = (('sun', 1), ('cloudly', .8), ('rainy', .6))
+    WEATHER_COEFS = (('sun', 1), ('cloudly', .75), ('rainy', .5))
 
     def __init__(self, harvesters: HarvesterPack, fields: Field,
                  humidity: float = .18, weather_type: Union[str, int, float] = 1, **params):
@@ -49,8 +51,29 @@ class BaseCleaning:
         while hum > self.base_humidity:
             dry_rate_ind = argmin(map(lambda x: hum - x, dry_rate))
 
-            hum -= dry_rate[dry_rate_ind]
+            hum -= round(dry_rate[dry_rate_ind] * self.dry_coef, 3)
             shift += 1
 
         return shift
 
+    @abstractmethod
+    def count_time(self):
+        """
+        Count time need for full harvesting
+        """
+        pass
+
+    @abstractmethod
+    def count_losses(self):
+        """
+        Count losses of grain and money using current fields and harvs
+        """
+        pass
+
+
+class DoubleNodeCleaning(BaseCleaning):
+    pass
+
+
+class TripleNodeCleaning(BaseCleaning):
+    pass
