@@ -31,8 +31,11 @@ class SimpleField(Field):
         self.harvesting_date = harv_date
 
 
-class FieldPack(Field):
-    def __init__(self, *fields: Field):
-        self.fields = fields
-
-        self.square = sum([field.square for field in self.square])
+# class FieldPack(Field):
+#     def __init__(self, *fields: Field):
+#         self.fields = fields
+#
+#         self.square = sum([field.square for field in self.square])
+#
+#     def set_harvesting_date(self, *args, **kwargs):
+#         pass
