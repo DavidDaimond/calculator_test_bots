@@ -1,8 +1,11 @@
 from base_objects.harvesters import *
 from base_objects.fields import *
+from base_objects.agriculture import *
 
 from abc import abstractmethod
 from typing import Union
+
+from collections import Iterable
 
 from numpy import argmin
 
@@ -14,16 +17,20 @@ class BaseCleaning:
 
     WEATHER_COEFS = (('sun', 1), ('cloudly', .75), ('rainy', .5))
 
-    def __init__(self, harvesters: HarvesterPack, fields: Field,
+    def __init__(self, harvesters: HarvesterPack,
+                 fields: Union[SimpleField, Iterable[SimpleField]], agriculture: Agriculture,
                  humidity: float = .18, weather_type: Union[str, int, float] = 1, **params):
         """
-
         :param harvesters: HarvPack for cleaning
         :param fields: Fields to clean
         :param params: params of cleaning
         """
+
         self.harvesters = harvesters
+        if not isinstance(fields, Iterable):
+            fields = [fields]
         self.fields = fields
+        self.agriculture = agriculture
 
         self.humidity = humidity
         self.base_humidity = BaseCleaning.BASE_HUMIDITY
@@ -57,7 +64,7 @@ class BaseCleaning:
         return shift
 
     @abstractmethod
-    def count_time(self):
+    def count_clean_time(self):
         """
         Count time need for full harvesting
         """
@@ -72,8 +79,63 @@ class BaseCleaning:
 
 
 class DoubleNodeCleaning(BaseCleaning):
-    pass
+    UNLOADING_TIME = (('harv_to_field_edge', 4), ('harv_to_bunker', 3), ('full_stop', 2))
+
+    def __init__(self, *base_args, unloading_time: Union[str, int, float], **kwargs):
+        super(DoubleNodeCleaning, self).__init__(*base_args, **kwargs)
+
+        u_cost_type = type(unloading_time)
+
+        if u_cost_type is float:
+            self.unloading_time = unloading_time
+
+        elif u_cost_type is str:
+            self.unloading_time = dict(DoubleNodeCleaning.UNLOADING_TIME)[unloading_time]
+
+        elif u_cost_type is int:
+            self.unloading_time = [x[1] for x in DoubleNodeCleaning.UNLOADING_TIME][unloading_time]
+
+        self.unloading_time /= 60
+
+    def count_clean_time(self):
+        area_coverage = self.harvesters.count_area_cov()
+
+        start_date = self.fields[0].maturation_date - timedelta(days=self.days_shift)
+        harv_date = start_date
+
+        total_time = 0
+        overclean = 0
+
+        for field in self.fields:
+
+            waitloss_coef = self.harvesters.count_fills_per_hour(field, self.agriculture, self.unloading_time)
+            # print(waitloss_coef)
+
+            field_time = (field.square - overclean) / (area_coverage * (1 - waitloss_coef))
+
+            overclean = (1 - (field_time % 1)) * area_coverage
+
+            total_time += field_time
+
+        return total_time
 
 
 class TripleNodeCleaning(BaseCleaning):
-    pass
+
+    def count_clean_time(self):
+        area_coverage = self.harvesters.count_area_cov()
+
+        start_date = self.fields[0].maturation_date - timedelta(days=self.days_shift)
+        harv_date = start_date
+
+        total_time = 0
+        overclean = 0
+
+        for field in self.fields:
+            field_time = (field.square - overclean) / area_coverage
+
+            overclean = (1 - (field_time % 1)) * area_coverage
+
+            total_time += field_time
+
+        return total_time

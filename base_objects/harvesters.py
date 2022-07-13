@@ -2,6 +2,8 @@ from abc import abstractmethod
 from base_objects.agriculture import *
 from base_objects.fields import *
 
+from typing import Union
+
 import numpy as np
 
 
@@ -23,7 +25,7 @@ class HarvesterPack:
         pass
 
     @abstractmethod
-    def count_time_to_fill(self, field: Field, agriculture: Agriculture):
+    def count_fills_per_hour(self, field: Field, agriculture: Agriculture, unloading_time: Union[float, int]):
         pass
 
 
@@ -49,7 +51,10 @@ class SimpleHarvPack(HarvesterPack):
     def set_workhours(self, workhours: int):
         self.workhours = workhours
 
-    def count_time_to_fill(self, field: Field, agriculture: Agriculture):
+    def get_workhours(self):
+        return self.workhours
+
+    def count_fills_per_hour(self, field: Field, agriculture: Agriculture, unloading_time: Union[float, int]):
         fph = (self.harv_width * self.speed * field.productivity) / (self.bunker_volume * agriculture.volume)
         fph /= 1000
         ttf = fph ** -1
@@ -79,5 +84,8 @@ class GigaHarvPack(HarvesterPack):
         for subpack in self.subpacks:
             subpack.set_workhours(workhours)
 
-    def count_time_to_fill(self, field: Field, agriculture: Agriculture):
-        return np.mean([pack.count_time_to_fill(field, agriculture) for pack in self.subpacks])
+    def get_workhours(self):
+        return self.subpacks[0].get_workhours()
+
+    def count_fills_per_hour(self, field: Field, agriculture: Agriculture):
+        return np.mean([pack.count_fills_per_hour(field, agriculture) for pack in self.subpacks])
