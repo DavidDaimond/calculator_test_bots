@@ -104,9 +104,11 @@ class DoubleNodeCleaning(BaseCleaning):
         harv_date = start_date
 
         total_time = 0
+        field_time = 0
         overclean = 0
 
         for field in self.fields:
+            field.harvesting_date = start_date + timedelta(days=round(field_time))
 
             waitloss_coef = self.harvesters.count_fills_per_hour(field, self.agriculture, self.unloading_time)
             # print(waitloss_coef)
@@ -129,9 +131,11 @@ class TripleNodeCleaning(BaseCleaning):
         harv_date = start_date
 
         total_time = 0
+        field_time = 0
         overclean = 0
 
         for field in self.fields:
+            field.harvesting_date = start_date + timedelta(days=round(field_time))
             field_time = (field.square - overclean) / area_coverage
 
             overclean = (1 - (field_time % 1)) * area_coverage
