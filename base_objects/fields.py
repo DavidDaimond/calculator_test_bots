@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from abc import abstractmethod
+from typing import Union
 
 
 class Field:
@@ -25,7 +26,7 @@ class Field:
 
 
 class SimpleField(Field):
-    def __init__(self, square: int, maturation_date: datetime, productivity: int):
+    def __init__(self, square: int, maturation_date: Union[datetime, date], productivity: int):
         self.square = square
         self.maturation_date = maturation_date
         self.productivity = productivity

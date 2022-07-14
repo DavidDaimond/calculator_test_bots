@@ -25,7 +25,7 @@ class HarvesterPack:
         pass
 
     @abstractmethod
-    def count_fills_per_hour(self, field: Field, agriculture: Agriculture, unloading_time: Union[float, int]):
+    def count_fills_per_hour(self, field: Field, agriculture: Agriculture):
         pass
 
     def __str__(self):
@@ -61,11 +61,10 @@ class SimpleHarvPack(HarvesterPack):
     def get_workhours(self):
         return self.workhours
 
-    def count_fills_per_hour(self, field: Field, agriculture: Agriculture, unloading_time: Union[float, int]):
+    def count_fills_per_hour(self, field: Field, agriculture: Agriculture):
+        # print(self.harv_width, self.bunker_volume, self.speed, field.productivity, agriculture.volume)
         fph = (self.harv_width * self.speed * field.productivity) / (self.bunker_volume * agriculture.volume)
-        fph /= 1000
-        ttf = fph ** -1
-        return ttf
+        return fph
 
 
 class GigaHarvPack(HarvesterPack):
@@ -94,8 +93,10 @@ class GigaHarvPack(HarvesterPack):
     def get_workhours(self):
         return self.subpacks[0].get_workhours()
 
-    def count_fills_per_hour(self, field: Field, agriculture: Agriculture, unloading_time: Union[float, int]):
-        return np.mean([pack.count_fills_per_hour(field, agriculture, unloading_time) for pack in self.subpacks])
+    def count_fills_per_hour(self, field: Field, agriculture: Agriculture):
+        separate_fph = [pack.count_fills_per_hour(field, agriculture) for pack in self.subpacks]
+        # print(separate_fph)
+        return np.mean(separate_fph)
 
     def __str__(self):
         return self.__class__.__name__ + ' with subpacks:\n' + '\n'.join([x.__str__() for x in self.subpacks])
