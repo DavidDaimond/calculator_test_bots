@@ -28,6 +28,13 @@ class HarvesterPack:
     def count_fills_per_hour(self, field: Field, agriculture: Agriculture, unloading_time: Union[float, int]):
         pass
 
+    def __str__(self):
+        return f'{self.__class__.__name__} num: {self.num} harv_width: {self.harv_width} ' \
+               + f'bunker_volume: {self.bunker_volume} speed: {self.speed}'
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class SimpleHarvPack(HarvesterPack):
     def __init__(self, num: int, harv_width: float, bunker_volume: float, speed: int, workhours: int = 12):
@@ -87,5 +94,8 @@ class GigaHarvPack(HarvesterPack):
     def get_workhours(self):
         return self.subpacks[0].get_workhours()
 
-    def count_fills_per_hour(self, field: Field, agriculture: Agriculture):
-        return np.mean([pack.count_fills_per_hour(field, agriculture) for pack in self.subpacks])
+    def count_fills_per_hour(self, field: Field, agriculture: Agriculture, unloading_time: Union[float, int]):
+        return np.mean([pack.count_fills_per_hour(field, agriculture, unloading_time) for pack in self.subpacks])
+
+    def __str__(self):
+        return self.__class__.__name__ + ' with subpacks:\n' + '\n'.join([x.__str__() for x in self.subpacks])

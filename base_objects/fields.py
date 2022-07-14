@@ -11,11 +11,17 @@ class Field:
 
         self.harvesting_date = None
         self.harvesting_end = None
-        pass
 
     @abstractmethod
     def set_harvesting_date(self, *args, **kwargs):
         pass
+
+    def __str__(self):
+        return f'Field square: {self.square} productivity: {self.productivity}' + \
+               f' maturation_date: {self.maturation_date}'
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class SimpleField(Field):

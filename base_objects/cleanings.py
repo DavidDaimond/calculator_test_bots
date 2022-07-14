@@ -58,7 +58,7 @@ class BaseCleaning:
         while hum > self.base_humidity:
             dry_rate_ind = argmin(map(lambda x: hum - x, dry_rate))
 
-            hum -= round(dry_rate[dry_rate_ind] * self.dry_coef, 3)
+            hum -= round(dry_rate[dry_rate_ind][1] * self.dry_coef, 3)
             shift += 1
 
         return shift
@@ -76,6 +76,14 @@ class BaseCleaning:
         Count losses of grain and money using current fields and harvs
         """
         pass
+
+    def __str__(self):
+        return 'Clean Object\n' + 'Harvesters: \n' + self.harvesters.__str__() + \
+               '\nFields: ' + self.fields.__str__() + \
+               '\nAgriculture: ' + self.agriculture.__str__()
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class DoubleNodeCleaning(BaseCleaning):
@@ -105,15 +113,25 @@ class DoubleNodeCleaning(BaseCleaning):
         total_time = 0
         overclean = 0
 
+        print(area_coverage)
+        print(start_date)
+
         for field in self.fields:
             field.harvesting_date = start_date + timedelta(days=round(total_time))
 
-            waitloss_coef = self.harvesters.count_fills_per_hour(field, self.agriculture, self.unloading_time)
+            fph = self.harvesters.count_fills_per_hour(field, self.agriculture)
+
+            waitloss_coef = fph * self.unloading_time
             # print(waitloss_coef)
 
+            print('Waitloss_coef for', field, 'is', waitloss_coef, end='\n\n')
+
             field_time = (field.square - overclean) / (area_coverage * (1 - waitloss_coef))
+            print('Field_time for', field, field_time, end='\n\n')
 
             overclean = (1 - (field_time % 1)) * area_coverage
+
+            print('Overclean for', field, area_coverage - overclean, end='\n\n')
 
             total_time += field_time
 
