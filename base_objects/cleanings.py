@@ -77,6 +77,11 @@ class BaseCleaning:
         """
         pass
 
+    def __str__(self):
+        'Clean Object\n' + 'Harvesters: \n' + self.harvesters.__str__() + \
+            '\nFields: ' + self.fields.__str__() + \
+            '\nAgriculture: ' + self.agriculture.__str__()
+
 
 class DoubleNodeCleaning(BaseCleaning):
     UNLOADING_TIME = (('harv_to_field_edge', 4), ('harv_to_bunker', 3), ('full_stop', 2))
